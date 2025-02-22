@@ -5,7 +5,6 @@ from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms
 from django.http import HttpResponse
 
 def Dashboard(request):
-    Appointments = Appointment.objects.all()
     context = {'Appointments': Appointments}
     return render(request, "Patients/dashboard.html", context)
 
@@ -35,23 +34,15 @@ def AddPatient(request):
 
         if patient_form.is_valid() and appointment_form.is_valid():
             try:
-                # First, create and save the patient
-                patient = patient_form.save(commit=True)  # Save patient immediately
-                
-                # Now, create and save the appointment linked to the patient
+                patient = patient_form.save(commit=True)
                 appointment = appointment_form.save(commit=False)
-                appointment.Patient = patient  # Link to saved patient
+                appointment.Patient = patient
                 appointment.save()
-
                 return redirect('PatientList')
-
             except IntegrityError as e:
                 patient_form.add_error(None, f'Database error: {e}')
-        
-        # Print form errors for debugging
         print(patient_form.errors)
         print(appointment_form.errors)
-
     else:
         patient_form = PatientForm()
         appointment_form = AppointmentForm()
@@ -61,14 +52,22 @@ def AddPatient(request):
         'appointment_form': appointment_form
     })
 
-def ViewRecords(request, patient_id):
+def ViewRecordsSummary(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
+    appointments = Appointment.objects.filter(Patient=patient)
     medical_records = MedicalRecord.objects.filter(Patient=patient)
     context = {
         'patient': patient,
-        'medical_records': medical_records
+        'medical_records': medical_records,
+        'appointments': appointments
     }
-    return render(request, 'Patients/viewrecords.html', context)
+    return render(request, 'Patients/patientsummary.html', context)
+
+def DeleteAppointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, AppointmentID=appointment_id)
+    patient_id = appointment.Patient.PatientID
+    appointment.delete()
+    return redirect('view_summary', patient_id=patient_id)
 
 def EditPatient(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
