@@ -116,6 +116,6 @@ def AddAppointment(request):
             except IntegrityError:
                 form.add_error(None, 'Database error')
     else:
-        HttpResponse("For some reason the form cant be shown ")
         form = AppointmentOnlyForms()
-    return render(request, 'Patients/addappointment.html', {'form': form})
+    
+    return render(request, 'Patients/addappointment.html', {'appointment_form': form})
