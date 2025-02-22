@@ -12,4 +12,5 @@ urlpatterns = [
     path('appointments/<str:patient_id>/', views.ViewAppointments, name='view_appointments'),
     path('edit/<str:patient_id>/', views.EditPatient, name='edit_patient'),
     path('delete/', views.DeletePatients, name='delete_patients'),
+    path('addappointment', views.AddAppointment, name='add_appointment'),
 ]

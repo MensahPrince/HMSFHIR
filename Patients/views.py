@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
-from .forms import PatientForm, AppointmentForm
+from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms
+from django.http import HttpResponse
 
 def Dashboard(request):
     Appointments = Appointment.objects.all()
@@ -104,3 +105,17 @@ def ViewAppointments(request, patient_id):
         'appointments': appointments  # Ensure the variable name is 'appointments'
     }
     return render(request, 'Patients/viewappointments.html', context)
+
+def AddAppointment(request):
+    if request.method == 'POST':
+        form = AppointmentOnlyForms(request.POST)
+        if form.is_valid():
+            try:
+                form.save()  # This saves the form data to the database
+                return redirect('Appointment')  # Redirect to the list of patients after saving
+            except IntegrityError:
+                form.add_error(None, 'Database error')
+    else:
+        HttpResponse("For some reason the form cant be shown ")
+        form = AppointmentOnlyForms()
+    return render(request, 'Patients/addappointment.html', {'form': form})
