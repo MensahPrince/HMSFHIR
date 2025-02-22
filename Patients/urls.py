@@ -9,6 +9,7 @@ urlpatterns = [
     path("fhirsync/", views.FHIRSync, name="FHIRSync"),
     path('newpatient/', views.AddPatient, name="AddPatient"),
     path('records/<str:patient_id>/', views.ViewRecords, name='view_records'),
+    path('appointments/<str:patient_id>/', views.ViewAppointments, name='view_appointments'),
     path('edit/<str:patient_id>/', views.EditPatient, name='edit_patient'),
     path('delete/', views.DeletePatients, name='delete_patients'),
 ]

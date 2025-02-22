@@ -34,6 +34,7 @@ class Appointment(models.Model):
     Appointment_Date = models.DateTimeField()
     Doctor_Name = models.CharField(max_length=100)
     Notes = models.TextField(blank=True, null=True)
+    Status = models.CharField(max_length=10, choices=[('Scheduled', 'Scheduled'), ('Cancelled', 'Cancelled'),('Completed', 'Completed')])
 
     def __str__(self):
         return f"Appointment {self.AppointmentID} - {self.Patient.First_Name}"

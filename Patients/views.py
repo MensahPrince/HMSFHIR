@@ -96,3 +96,11 @@ def DeletePatients(request):
 
     return redirect('PatientList')
 
+def ViewAppointments(request, patient_id):
+    patient = get_object_or_404(Patient, PatientID=patient_id)
+    appointments = Appointment.objects.filter(Patient=patient)
+    context = {
+        'patient': patient,
+        'appointments': appointments  # Ensure the variable name is 'appointments'
+    }
+    return render(request, 'Patients/viewappointments.html', context)
