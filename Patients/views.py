@@ -63,6 +63,17 @@ def ViewRecordsSummary(request, patient_id):
     }
     return render(request, 'Patients/patientsummary.html', context)
 
+
+def ViewRecords(request, patient_id):
+    patient = get_object_or_404(Patient, PatientID=patient_id)
+    appointments = Appointment.objects.filter(Patient=patient)
+    medical_records = MedicalRecord.objects.filter(Patient=patient)
+    context = {
+        'patient': patient,
+        'medical_records': medical_records,
+    }
+    return render(request, 'Patients/medicalrecord.html', context)
+
 def DeleteAppointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, AppointmentID=appointment_id)
     patient_id = appointment.Patient.PatientID
