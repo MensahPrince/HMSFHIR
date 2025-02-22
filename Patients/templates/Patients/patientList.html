@@ -1,0 +1,51 @@
+{% extends "Patients/main.html" %}
+{% load static %}
+
+{% block PageName %}
+    Patients
+{% endblock %}
+
+{% block content %}
+<!-- Operations Section -->
+<section class="operations">
+    <a href={% url "AddPatient" %} class="newPatient">New Patient</a>
+</section>
+
+<!-- Patients Table -->
+<table class="patients-table">
+    <thead>
+        <tr>
+            <th>🚮</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>National ID</th>
+            <th>Patient ID</th>
+            <th>Last Arrived</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for Patient in Patients %}
+            <tr>
+                <td>
+                    <form method="post" action="{% url 'delete_patients' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="patient_ids" value="{{ Patient.PatientID }}">
+                        <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this patient: {{Patient.First_Name}} {{ Patient.Last_Name}}?')">🗑️</button>
+                    </form>
+                </td>
+                
+                <td class="patient-name">{{ Patient.First_Name }} {{ Patient.Last_Name }}</td>
+                <td class="patient-gender">{{ Patient.Gender }}</td>
+                <td class="patient-nid">{{ Patient.P_National_ID }}</td>
+                <td class="patient-id">{{ Patient.PatientID }}</td>
+                <td class="patient-date">{{ Patient.last_arrived }}</td>
+                <td class="patient-actions">
+                    <a class="btn btn-add" href={% url 'view_records' Patient.PatientID %} >+</a>
+                    <a href={% url "edit_patient" patient_id=Patient.PatientID %} class="btn btn-edit">E</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

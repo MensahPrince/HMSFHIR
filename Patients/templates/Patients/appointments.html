@@ -1,0 +1,47 @@
+{% extends "Patients/main.html" %}
+
+{% block PageName %}Appointments{% endblock PageName %}
+
+{% block content %}
+    <section class="operations">
+        <button class="newPatient">Add Appointment</button>
+    </section>
+    <nav class="navbar-top"></nav>
+
+    <table class="patients-table">
+        <thead>
+            <tr>
+                <th>Appointment ID</th>
+                <th>FHIR ID</th>
+                <th>Department</th>
+                <th>National ID</th>
+                <th>Doctor</th>
+                <th>Status</th>
+                <th>Appointment Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for  Appointment in Appointments %}
+                <tr>
+                    <td class="patient-id">{{Appointment.AppointmentID}}</td>
+
+                    <td class="patient-name">{{Appointment.Patient.Fhir_ID}}</td>
+
+                    <td class="patient-gender">OPD</td>
+
+                    <td class="patient-nid">{{ Appointment.Patient.P_National_ID }}</td>
+
+                    <td class="patient-id">Dr.John Doe</td>
+                    <td class="patient-id">{{Appointment.Status}}</td>
+
+                    <td class="patient-date">{{ Appointment.AppointmentDate }}</td>
+                    <td class="patient-actions">
+                        <button class="btn btn-add">+</button>
+                        <button class="btn btn-edit">E</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
