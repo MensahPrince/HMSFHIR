@@ -5,7 +5,7 @@
 {% block content %}
     <h2>Records for {{ patient.First_Name }} {{ patient.Last_Name }}</h2>
     <ul>
-        {% for record in medical_records %}
+        {% for medical_record in medical_records %}
             <li>
                 <strong>Diagnosis:</strong> {{ record.Diagnosis }}<br>
                 <strong>Treatment:</strong> {{ record.Treatment }}<br>

@@ -4,7 +4,7 @@
 
 {% block content %}
     <section class="operations">
-        <button class="newPatient">Add Appointment</button>
+        <a href={% url "add_appointment" %} class="newPatient">Add Appointment</a>
     </section>
     <nav class="navbar-top"></nav>
 
@@ -26,7 +26,7 @@
             {% for Appointment in Appointments %}
                 <tr>
                     <td>
-                        <form method="post" action="{% url 'delete_patients' %}" style="display:inline;">
+                        <form method="post" action="{% url 'delete_appointment' Appointment.AppointmentID %}" style="display:inline;">
                             {% csrf_token %}
                             <input type="hidden" name="patient_ids" value="{{ Appointment.Patient.PatientID }}">
                             <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this Appointment: ID &nbsp; {{Appointment.AppointmentID}}?')">🗑️</button>
@@ -42,7 +42,7 @@
                     <td class="patient-nid">{{ Appointment.Patient.P_National_ID }}</td>
 
                     <td class="patient-id">{{Appointment.Doctor_Name}}</td>
-                    <td class="patient-id">{{Appointment.Status}}</td>
+                    <td class="patient-id">{{Appointment.Appointment_Status}}</td>
 
                     <td class="patient-date">{{ Appointment.Appointment_Date }}</td>
                     <td class="patient-actions">

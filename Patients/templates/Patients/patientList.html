@@ -41,7 +41,7 @@
                 <td class="patient-id">{{ Patient.PatientID }}</td>
                 <td class="patient-date">{{ Patient.last_arrived }}</td>
                 <td class="patient-actions">
-                    <a class="btn btn-add" href={% url 'view_records' Patient.PatientID %} >+</a>
+                    <a class="btn btn-add" href={% url 'view_summary' Patient.PatientID %} >+</a>
                     <a href={% url "edit_patient" patient_id=Patient.PatientID %} class="btn btn-edit">E</a>
                 </td>
             </tr>

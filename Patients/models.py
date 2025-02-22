@@ -2,15 +2,15 @@ from django.db import models
 import datetime
 
 class Patient(models.Model):
-    PatientID = models.CharField(max_length=50, unique=True)  # Unique ID for each patient
-    P_National_ID = models.CharField(max_length=20, unique=True)  # Ensuring unique national ID
+    PatientID = models.CharField(max_length=100, unique=True)
+    P_National_ID = models.CharField(max_length=100)
     First_Name = models.CharField(max_length=100)
     Last_Name = models.CharField(max_length=100)
     Date_of_Birth = models.DateField()
     Gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
-    Address = models.TextField()
+    Address = models.CharField(max_length=255)
     Fhir_ID = models.AutoField(primary_key=True, unique=True)
-    Phone_Number = models.IntegerField()
+    Phone_Number = models.CharField(max_length=15)
     last_arrived = models.DateField(default=datetime.date.today)
 
     def __str__(self):
@@ -30,11 +30,11 @@ class MedicalRecord(models.Model):
 
 class Appointment(models.Model):
     AppointmentID = models.AutoField(primary_key=True)
-    Patient = models.ForeignKey(Patient, on_delete=models.CASCADE)  # Link to Patient
+    Patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     Appointment_Date = models.DateTimeField()
     Doctor_Name = models.CharField(max_length=100)
     Notes = models.TextField(blank=True, null=True)
-    Status = models.CharField(max_length=10, choices=[('Scheduled', 'Scheduled'), ('Cancelled', 'Cancelled'),('Completed', 'Completed')])
+    Appointment_Status = models.CharField(max_length=10, choices=[('Completed', 'Completed'), ('Scheduled', 'Scheduled'), ('Cancelled', 'Cancelled')], default='Scheduled')
 
     def __str__(self):
         return f"Appointment {self.AppointmentID} - {self.Patient.First_Name}"
