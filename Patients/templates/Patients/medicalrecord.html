@@ -3,7 +3,11 @@
 {% block PageName %}Medical Records{% endblock PageName %}
 
 {% block content %}
-    <nav class="navbar-top"></nav>
+    <nav class="navbar-top">
+        <section class="operations">
+            <a href={% url "AddPatient" %} class="newPatient">Add Records</a>
+        </section>
+    </nav>
 
     <table class="patients-table">
         <thead>
