@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
-from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms
+from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
 from django.http import HttpResponse
 
 def Dashboard(request):
@@ -52,6 +52,24 @@ def AddPatient(request):
         'patient_form': patient_form,
         'appointment_form': appointment_form
     })
+
+def AddRecords(request):
+    if request.method == 'POST':
+        medicalrecords_form = MedicalRecordsForm(request.POST)
+        if medicalrecords_form.is_valid():
+            try:
+                medicalrecords_form.save(commit=True)
+                return redirect('MedicalRecord')
+            except IntegrityError as e:
+                medicalrecords_form.add_error(None, f'Database error: {e}')
+        print(medicalrecords_form.errors)
+    else:
+        medicalrecords_form= MedicalRecordsForm()
+
+    return render(request, 'Patients/addmedicalrecords.html', {
+        'medicalrecords_form': medicalrecords_form
+    })
+
 
 def ViewRecordsSummary(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
