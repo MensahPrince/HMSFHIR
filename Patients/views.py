@@ -5,7 +5,8 @@ from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms
 from django.http import HttpResponse
 
 def Dashboard(request):
-    context = {'Appointments': Appointments}
+    appointments = Appointment.objects.all()  # Fetch all appointments
+    context = {'Appointments': appointments}
     return render(request, "Patients/dashboard.html", context)
 
 def PatientList(request):
