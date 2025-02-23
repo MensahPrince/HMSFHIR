@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
-from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms
+from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
 from django.http import HttpResponse
 
 def Dashboard(request):
-    context = {'Appointments': Appointments}
+    appointments = Appointment.objects.all()  # Fetch all appointments
+    context = {'Appointments': appointments}
     return render(request, "Patients/dashboard.html", context)
 
 def PatientList(request):
@@ -52,6 +53,24 @@ def AddPatient(request):
         'appointment_form': appointment_form
     })
 
+def AddRecords(request):
+    if request.method == 'POST':
+        medicalrecords_form = MedicalRecordsForm(request.POST)
+        if medicalrecords_form.is_valid():
+            try:
+                medicalrecords_form.save(commit=True)
+                return redirect('MedicalRecord')
+            except IntegrityError as e:
+                medicalrecords_form.add_error(None, f'Database error: {e}')
+        print(medicalrecords_form.errors)
+    else:
+        medicalrecords_form= MedicalRecordsForm()
+
+    return render(request, 'Patients/addmedicalrecords.html', {
+        'medicalrecords_form': medicalrecords_form
+    })
+
+
 def ViewRecordsSummary(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
     appointments = Appointment.objects.filter(Patient=patient)
@@ -72,7 +91,7 @@ def ViewRecords(request, patient_id):
         'patient': patient,
         'medical_records': medical_records,
     }
-    return render(request, 'Patients/medicalrecord.html', context)
+    return render(request, 'Patients/viewrecords.html', context)
 
 def DeleteAppointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, AppointmentID=appointment_id)
@@ -129,3 +148,12 @@ def AddAppointment(request):
         form = AppointmentOnlyForms()
     
     return render(request, 'Patients/addappointment.html', {'appointment_form': form})
+
+'''''def viewRecords(request, patient_id):
+    patient =  get_object_or_404(Patient, PatientID =patient_id)
+    medicalrecords = MedicalRecord.objects.filter(Patient=patient)
+    context = {
+        'patient': patient,
+        'medicalrecords' : medicalrecords
+    }
+    return render(request, 'Patients/viewrecords.html', context)'''''
