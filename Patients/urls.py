@@ -15,4 +15,5 @@ urlpatterns = [
     path('delete/', views.DeletePatients, name='delete_patients'),
     path('addappointment/', views.AddAppointment, name='add_appointment'),
     path('deleteappointment/<int:appointment_id>/', views.DeleteAppointment, name='delete_appointment'),  # Added delete appointment URL
+    #path('view_medicalrecords/<str:patient_id>', views.viewRecords, name="viewRecords")
 ]

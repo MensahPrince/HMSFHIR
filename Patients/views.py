@@ -73,7 +73,7 @@ def ViewRecords(request, patient_id):
         'patient': patient,
         'medical_records': medical_records,
     }
-    return render(request, 'Patients/medicalrecord.html', context)
+    return render(request, 'Patients/viewrecords.html', context)
 
 def DeleteAppointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, AppointmentID=appointment_id)
@@ -130,3 +130,12 @@ def AddAppointment(request):
         form = AppointmentOnlyForms()
     
     return render(request, 'Patients/addappointment.html', {'appointment_form': form})
+
+'''''def viewRecords(request, patient_id):
+    patient =  get_object_or_404(Patient, PatientID =patient_id)
+    medicalrecords = MedicalRecord.objects.filter(Patient=patient)
+    context = {
+        'patient': patient,
+        'medicalrecords' : medicalrecords
+    }
+    return render(request, 'Patients/viewrecords.html', context)'''''
