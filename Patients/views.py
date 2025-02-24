@@ -118,6 +118,25 @@ def EditPatient(request, patient_id):
         'patient': patient
     })
 
+def EditRecords(request, record_id):
+    medical_record = get_object_or_404(MedicalRecord, RecordID=record_id)
+
+    if request.method == 'POST':
+        medicalrecords_form = MedicalRecordsForm(request.POST, instance=medical_record)
+        if medicalrecords_form.is_valid():
+            try:
+                medicalrecords_form.save()
+                return redirect('view_records', patient_id=medical_record.Patient.PatientID)
+            except IntegrityError as e:
+                medicalrecords_form.add_error(None, f'Database error: {e}')
+    else:
+        medicalrecords_form = MedicalRecordsForm(instance=medical_record)
+
+    return render(request, 'Patients/editrecords.html', {
+        'medicalrecords_form': medicalrecords_form,
+        'medical_record': medical_record
+    })
+
 def DeletePatients(request):
     if request.method == 'POST':
         patient_ids = request.POST.getlist('patient_ids')
