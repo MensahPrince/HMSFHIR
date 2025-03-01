@@ -24,7 +24,7 @@ def MedicalRecordView(request):
     MedicalRecords = MedicalRecord.objects.all()
     context = {"MedicalRecords": MedicalRecords}
     return render(request, "Patients/medicalrecord.html", context)
-
+#
 def FHIRSync(request):
     context = {}
     return render(request, "Patients/fhirsync.html", context)
