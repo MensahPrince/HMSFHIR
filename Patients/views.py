@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
 from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
 from django.http import HttpResponse
+from .fhir_service import get_patient
 
 def Dashboard(request):
     appointments = Appointment.objects.all()  # Fetch all appointments
@@ -23,7 +24,7 @@ def MedicalRecordView(request):
     MedicalRecords = MedicalRecord.objects.all()
     context = {"MedicalRecords": MedicalRecords}
     return render(request, "Patients/medicalrecord.html", context)
-
+#
 def FHIRSync(request):
     context = {}
     return render(request, "Patients/fhirsync.html", context)
@@ -168,11 +169,56 @@ def AddAppointment(request):
     
     return render(request, 'Patients/addappointment.html', {'appointment_form': form})
 
-'''''def viewRecords(request, patient_id):
-    patient =  get_object_or_404(Patient, PatientID =patient_id)
-    medicalrecords = MedicalRecord.objects.filter(Patient=patient)
-    context = {
-        'patient': patient,
-        'medicalrecords' : medicalrecords
-    }
-    return render(request, 'Patients/viewrecords.html', context)'''''
+def EditAppointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, AppointmentID=appointment_id)
+
+    if request.method == 'POST':
+        appointment_form = AppointmentForm(request.POST, instance=appointment)
+        if appointment_form.is_valid():
+            try:
+                appointment_form.save()
+                return redirect('view_appointments', patient_id=appointment.Patient.PatientID)
+            except IntegrityError as e:
+                appointment_form.add_error(None, f'Database error: {e}')
+    else:
+        appointment_form = AppointmentForm(instance=appointment)
+
+    return render(request, 'Patients/editappointment.html', {
+        'appointment_form': appointment_form,
+        'appointment': appointment
+    })
+
+def PullPatient(request):
+    if request.method == 'GET':
+        patient_id = request.GET.get('patient_id')
+        if patient_id:
+            patient_data = get_patient(patient_id)
+            if patient_data:
+                # Extract patient details with checks for missing keys
+                patient_id = patient_data.get('id', '')
+                identifier = patient_data.get('identifier', [{}])[0].get('value', '')
+                first_name = patient_data.get('name', [{}])[0].get('given', [''])[0]
+                last_name = patient_data.get('name', [{}])[0].get('family', '')
+                birth_date = patient_data.get('birthDate', '')
+                gender = patient_data.get('gender', '')
+                address = patient_data.get('address', [{}])[0].get('text', '')
+                phone_number = patient_data.get('telecom', [{}])[0].get('value', '')
+
+                # Create or update the Patient object
+                patient, created = Patient.objects.update_or_create(
+                    PatientID=patient_id,
+                    defaults={
+                        'P_National_ID': identifier,
+                        'First_Name': first_name,
+                        'Last_Name': last_name,
+                        'Date_of_Birth': birth_date,
+                        'Gender': gender,
+                        'Address': address,
+                        'Phone_Number': phone_number
+                    }
+                )
+                return redirect('PatientList')
+            else:
+                # Handle the case where the patient data is not found
+                return render(request, 'Patients/patientList.html', {'error': 'Patient not found'})
+    return redirect('PatientList')
