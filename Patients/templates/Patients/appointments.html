@@ -47,7 +47,7 @@
                     <td class="patient-date">{{ Appointment.Appointment_Date }}</td>
                     <td class="patient-actions">
                         <a href={% url "view_appointments" Appointment.Patient.PatientID %} class="btn btn-add">+</a>
-                        <button class="btn btn-edit">E</button>
+                        <a href={% url "edit_appointment" Appointment.AppointmentID %} class="btn btn-edit">E</a>
                     </td>
                 </tr>
             {% endfor %}
