@@ -1,0 +1,31 @@
+{% extends "Patients/main.html" %}
+{% load static %}
+{% block PageName %}Pulled Records{% endblock PageName %}
+
+{% block content %}
+<h1>Inspect Pulled Patient Data</h1>
+{% if error %}
+    <p>{{ error }}</p>
+{% else %}
+    <form method="post" action="{% url 'save_pulled_patient' %}">
+        {% csrf_token %}
+        <p>Patient ID: {{ patient_id }}</p>
+        <input type="hidden" name="patient_id" value="{{ patient_id }}">
+        <p>Identifier: {{ identifier }}</p>
+        <input type="hidden" name="identifier" value="{{ identifier }}">
+        <p>First Name: {{ first_name }}</p>
+        <input type="hidden" name="first_name" value="{{ first_name }}">
+        <p>Last Name: {{ last_name }}</p>
+        <input type="hidden" name="last_name" value="{{ last_name }}">
+        <p>Birth Date: {{ birth_date }}</p>
+        <input type="hidden" name="birth_date" value="{{ birth_date }}">
+        <p>Gender: {{ gender }}</p>
+        <input type="hidden" name="gender" value="{{ gender }}">
+        <p>Address: {{ address }}</p>
+        <input type="hidden" name="address" value="{{ address }}">
+        <p>Phone Number: {{ phone_number }}</p>
+        <input type="hidden" name="phone_number" value="{{ phone_number }}">
+        <button type="submit">Save Patient Data</button>
+    </form>
+{% endif %}
+{% endblock %}

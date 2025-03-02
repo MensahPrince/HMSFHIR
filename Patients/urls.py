@@ -20,4 +20,5 @@ urlpatterns = [
     path('editrecord/<int:record_id>/', views.EditRecords, name='edit_record'),
     path('editappointment/<int:appointment_id>/', views.EditAppointment, name='edit_appointment'),
     path('pullpatient/', views.PullPatient, name='pull_patient'),  # Added pull patient URL
+    path('save_pulled_patient/', views.SavePulledPatient, name='save_pulled_patient'),
 ]

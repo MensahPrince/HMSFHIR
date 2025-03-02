@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
 from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
-from django.http import HttpResponse
 from .fhir_service import get_patient
+from django.views.decorators.csrf import csrf_exempt
 
 def Dashboard(request):
     appointments = Appointment.objects.all()  # Fetch all appointments
@@ -204,21 +204,60 @@ def PullPatient(request):
                 address = patient_data.get('address', [{}])[0].get('text', '')
                 phone_number = patient_data.get('telecom', [{}])[0].get('value', '')
 
-                # Create or update the Patient object
-                patient, created = Patient.objects.update_or_create(
-                    PatientID=patient_id,
-                    defaults={
-                        'P_National_ID': identifier,
-                        'First_Name': first_name,
-                        'Last_Name': last_name,
-                        'Date_of_Birth': birth_date,
-                        'Gender': gender,
-                        'Address': address,
-                        'Phone_Number': phone_number
-                    }
-                )
-                return redirect('PatientList')
+                # Pass the patient data to the template for inspection
+                context = {
+                    'patient_id': patient_id,
+                    'identifier': identifier,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'birth_date': birth_date,
+                    'gender': gender,
+                    'address': address,
+                    'phone_number': phone_number
+                }
+                return render(request, 'Patients/pulledrecords.html', context)
             else:
                 # Handle the case where the patient data is not found
-                return render(request, 'Patients/patientList.html', {'error': 'Patient not found'})
+                return render(request, 'Patients/pulledrecords.html', {'error': 'Patient not found'})
+    return redirect('PatientList')
+
+@csrf_exempt
+def SavePulledPatient(request):
+    if request.method == 'POST':
+        patient_id = request.POST.get('patient_id')
+        identifier = request.POST.get('identifier')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        birth_date = request.POST.get('birth_date')
+        gender = request.POST.get('gender')
+        address = request.POST.get('address')
+        phone_number = request.POST.get('phone_number')
+
+        try:
+            # Create or update the Patient object
+            patient, created = Patient.objects.update_or_create(
+                PatientID=patient_id,
+                defaults={
+                    'P_National_ID': identifier,
+                    'First_Name': first_name,
+                    'Last_Name': last_name,
+                    'Date_of_Birth': birth_date,
+                    'Gender': gender,
+                    'Address': address,
+                    'Phone_Number': phone_number
+                }
+            )
+            return redirect('PatientList')
+        except IntegrityError as e:
+            return render(request, 'Patients/pulledrecords.html', {
+                'error': f'Database error: {e}',
+                'patient_id': patient_id,
+                'identifier': identifier,
+                'first_name': first_name,
+                'last_name': last_name,
+                'birth_date': birth_date,
+                'gender': gender,
+                'address': address,
+                'phone_number': phone_number
+            })
     return redirect('PatientList')
