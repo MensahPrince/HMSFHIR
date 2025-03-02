@@ -76,10 +76,18 @@ def ViewRecordsSummary(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
     appointments = Appointment.objects.filter(Patient=patient)
     medical_records = MedicalRecord.objects.filter(Patient=patient)
+    
+    # Fetch condition details from the database if available
+    condition_details = 'No condition details available'
+    condition_data = get_patient_condition(patient_id)
+    if condition_data:
+        condition_details = condition_data.get('condition', 'No condition details available')
+
     context = {
         'patient': patient,
         'medical_records': medical_records,
-        'appointments': appointments
+        'appointments': appointments,
+        'condition_details': condition_details
     }
     return render(request, 'Patients/patientsummary.html', context)
 
