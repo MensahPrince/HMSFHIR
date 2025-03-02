@@ -34,3 +34,9 @@ def delete_patient(patient_id):
     url = f"{FHIR_BASE_URL}/Patient/{patient_id}"
     response = requests.delete(url)
     return response.status_code == 204
+
+def get_patient_condition(patient_id):
+    """Fetch a patient's condition by patient ID"""
+    url = f"{FHIR_BASE_URL}/Patient/{patient_id}/Condition"
+    response = requests.get(url, headers={"Accept": "application/fhir+json"})
+    return response.json() if response.status_code == 200 else None

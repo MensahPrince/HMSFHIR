@@ -1,44 +1,30 @@
 {% extends "Patients/main.html" %}
-
-{% block PageName %}Summary Details{% endblock PageName %}
+{% load static %}
+{% block PageName %}Patient Summary{% endblock PageName %}
 
 {% block content %}
-    <h2>Summary Details for {{ patient.First_Name }} {{ patient.Last_Name }}</h2>
-    <br>
-    <h2>APPOINTMENT DETAILS</h2>
-    <br>
-    <ul>
-        {% if not appointments %}
-            <p style="color:red">No Appointments</p>
-        {% else %}
-            {% for appointment in appointments %}
-                <li>
-                    <strong>Appointment ID:</strong> {{ appointment.AppointmentID }}<br>
-                    <strong>Appointment Date:</strong> {{ appointment.Appointment_Date }}<br>
-                    <strong>Assigned Doctor:</strong> {{ appointment.Doctor_Name }}<br>
-                    <strong>Status:</strong> {{ appointment.Appointment_Status }}<br>
-                    <strong>Notes:</strong>{% if appointment.Notes == "" %}
-                        <span style="color: red;">No notes were recorded. </span>
-                    {% else %}
-                        {{ appointment.Notes }} 
-                    {% endif %}
-                    <br>
-                    <a href="{% url 'delete_appointment' appointment.AppointmentID %}">Delete Appointment</a>
-                </li>
-            {% endfor %}
-        {% endif %}
-    </ul>
-    <br>
-    <h2>MEDICAL RECORDS</h2>
-    <br>
-    <ul>
-        {% for record in medical_records %}
-        <li>
-            <strong>Diagnosis:</strong> {{ record.Diagnosis }}<br>
-            <strong>Treatment:</strong> {{ record.Treatment }}<br>
-            <strong>Prescription:</strong> {{ record.Prescription }}<br>
-            <strong>Date Recorded:</strong> {{ record.Date_Created }}
-        </li>
-        {% endfor %}
-    </ul>
+<h1>Patient Summary</h1>
+<p>Patient ID: {{ patient.PatientID }}</p>
+<p>Identifier: {{ patient.P_National_ID }}</p>
+<p>First Name: {{ patient.First_Name }}</p>
+<p>Last Name: {{ patient.Last_Name }}</p>
+<p>Birth Date: {{ patient.Date_of_Birth }}</p>
+<p>Gender: {{ patient.Gender }}</p>
+<p>Address: {{ patient.Address }}</p>
+<p>Phone Number: {{ patient.Phone_Number }}</p>
+<p>Condition Details: {{ condition_details }}</p>
+
+<h2>Appointments</h2>
+<ul>
+    {% for appointment in appointments %}
+        <li>{{ appointment.Appointment_Date }} with Dr. {{ appointment.Doctor_Name }} - {{ appointment.Appointment_Status }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Medical Records</h2>
+<ul>
+    {% for record in medical_records %}
+        <li>{{ record.Date_Created }} - {{ record.Diagnosis }}</li>
+    {% endfor %}
+</ul>
 {% endblock %}
