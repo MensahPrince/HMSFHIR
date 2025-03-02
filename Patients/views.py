@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
 from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
-from .fhir_service import get_patient
+from .fhir_service import get_patient, get_patient_condition
 from django.views.decorators.csrf import csrf_exempt
 
 def Dashboard(request):
@@ -204,7 +204,14 @@ def PullPatient(request):
                 address = patient_data.get('address', [{}])[0].get('text', '')
                 phone_number = patient_data.get('telecom', [{}])[0].get('value', '')
 
-                # Pass the patient data to the template for inspection
+                # Get patient condition details
+                condition_data = get_patient_condition(patient_id)
+                if condition_data:
+                    condition_details = condition_data.get('condition', 'No condition details available')
+                else:
+                    condition_details = 'No condition details available'
+
+                # Pass the patient data and condition details to the template for inspection
                 context = {
                     'patient_id': patient_id,
                     'identifier': identifier,
@@ -213,7 +220,8 @@ def PullPatient(request):
                     'birth_date': birth_date,
                     'gender': gender,
                     'address': address,
-                    'phone_number': phone_number
+                    'phone_number': phone_number,
+                    'condition_details': condition_details
                 }
                 return render(request, 'Patients/pulledrecords.html', context)
             else:
