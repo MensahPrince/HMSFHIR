@@ -193,32 +193,30 @@ def PullPatient(request):
     if request.method == 'GET':
         patient_id = request.GET.get('patient_id')
         if patient_id:
-            patient_data = get_patient(patient_id)
+            patient_data = get_patient_with_condition(patient_id)
             if patient_data:
-                # Extract patient details with checks for missing keys
-                patient_id = patient_data.get('id', '')
-                identifier = patient_data.get('identifier', [{}])[0].get('value', '')
-                first_name = patient_data.get('name', [{}])[0].get('given', [''])[0]
-                last_name = patient_data.get('name', [{}])[0].get('family', '')
-                birth_date = patient_data.get('birthDate', '')
-                gender = patient_data.get('gender', '')
-                address = patient_data.get('address', [{}])[0].get('text', '')
-                phone_number = patient_data.get('telecom', [{}])[0].get('value', '')
+                entry = patient_data.get('entry', [])
+                if entry:
+                    patient_entry = next((item for item in entry if item['resource']['resourceType'] == 'Patient'), None)
+                    condition_entry = next((item for item in entry if item['resource']['resourceType'] == 'Condition'), None)
 
-                # Pass the patient data to the template for inspection
-                context = {
-                    'patient_id': patient_id,
-                    'identifier': identifier,
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'birth_date': birth_date,
-                    'gender': gender,
-                    'address': address,
-                    'phone_number': phone_number
-                }
-                return render(request, 'Patients/pulledrecords.html', context)
+                    if patient_entry:
+                        patient = patient_entry['resource']
+                        condition_details = condition_entry['resource']['code']['coding'][0]['display'] if condition_entry else 'No condition details available'
+
+                        context = {
+                            'patient_id': patient.get('id', ''),
+                            'identifier': patient.get('identifier', [{}])[0].get('value', ''),
+                            'first_name': patient.get('name', [{}])[0].get('given', [''])[0],
+                            'last_name': patient.get('name', [{}])[0].get('family', ''),
+                            'birth_date': patient.get('birthDate', ''),
+                            'gender': patient.get('gender', ''),
+                            'address': patient.get('address', [{}])[0].get('text', ''),
+                            'phone_number': patient.get('telecom', [{}])[0].get('value', ''),
+                            'condition_details': condition_details
+                        }
+                        return render(request, 'Patients/pulledrecords.html', context)
             else:
-                # Handle the case where the patient data is not found
                 return render(request, 'Patients/pulledrecords.html', {'error': 'Patient not found'})
     return redirect('PatientList')
 
