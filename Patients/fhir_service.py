@@ -40,3 +40,9 @@ def get_patient_condition(patient_id):
     url = f"{FHIR_BASE_URL}/Patient/{patient_id}/Condition"
     response = requests.get(url, headers={"Accept": "application/fhir+json"})
     return response.json() if response.status_code == 200 else None
+
+def get_patient_with_condition(patient_id):
+    """Fetch a patient by ID and include condition details"""
+    url = f"{FHIR_BASE_URL}/Patient?_id={patient_id}&_revinclude=Condition:patient"
+    response = requests.get(url, headers={"Accept": "application/fhir+json"})
+    return response.json() if response.status_code == 200 else None

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError
 from .models import Patient, MedicalRecord, Appointment
 from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
-from .fhir_service import get_patient, get_patient_condition
+from .fhir_service import get_patient, get_patient_condition, get_patient_with_condition
 from django.views.decorators.csrf import csrf_exempt
 
 def Dashboard(request):
@@ -75,19 +75,12 @@ def AddRecords(request):
 def ViewRecordsSummary(request, patient_id):
     patient = get_object_or_404(Patient, PatientID=patient_id)
     appointments = Appointment.objects.filter(Patient=patient)
-    medical_records = MedicalRecord.objects.filter(Patient=patient)
-    
-    # Fetch condition details from the database if available
-    condition_details = 'No condition details available'
-    condition_data = get_patient_condition(patient_id)
-    if condition_data:
-        condition_details = condition_data.get('condition', 'No condition details available')
+    medical_records = patient.get_medical_records()
 
     context = {
         'patient': patient,
         'medical_records': medical_records,
         'appointments': appointments,
-        'condition_details': condition_details
     }
     return render(request, 'Patients/patientsummary.html', context)
 
@@ -200,42 +193,33 @@ def PullPatient(request):
     if request.method == 'GET':
         patient_id = request.GET.get('patient_id')
         if patient_id:
-            patient_data = get_patient(patient_id)
+            patient_data = get_patient_with_condition(patient_id)
             if patient_data:
-                # Extract patient details with checks for missing keys
-                patient_id = patient_data.get('id', '')
-                identifier = patient_data.get('identifier', [{}])[0].get('value', '')
-                first_name = patient_data.get('name', [{}])[0].get('given', [''])[0]
-                last_name = patient_data.get('name', [{}])[0].get('family', '')
-                birth_date = patient_data.get('birthDate', '')
-                gender = patient_data.get('gender', '')
-                address = patient_data.get('address', [{}])[0].get('text', '')
-                phone_number = patient_data.get('telecom', [{}])[0].get('value', '')
+                entry = patient_data.get('entry', [])
+                if entry:
+                    patient_entry = next((item for item in entry if item['resource']['resourceType'] == 'Patient'), None)
+                    condition_entry = next((item for item in entry if item['resource']['resourceType'] == 'Condition'), None)
 
-                # Get patient condition details
-                condition_data = get_patient_condition(patient_id)
-                if condition_data:
-                    condition_details = condition_data.get('condition', 'No condition details available')
-                else:
-                    condition_details = 'No condition details available'
+                    if patient_entry:
+                        patient = patient_entry['resource']
+                        condition_details = condition_entry['resource']['code']['coding'][0]['display'] if condition_entry else 'No condition details available'
 
-                # Pass the patient data and condition details to the template for inspection
-                context = {
-                    'patient_id': patient_id,
-                    'identifier': identifier,
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'birth_date': birth_date,
-                    'gender': gender,
-                    'address': address,
-                    'phone_number': phone_number,
-                    'condition_details': condition_details
-                }
-                return render(request, 'Patients/pulledrecords.html', context)
+                        context = {
+                            'patient_id': patient.get('id', ''),
+                            'identifier': patient.get('identifier', [{}])[0].get('value', ''),
+                            'first_name': patient.get('name', [{}])[0].get('given', [''])[0],
+                            'last_name': patient.get('name', [{}])[0].get('family', ''),
+                            'birth_date': patient.get('birthDate', ''),
+                            'gender': patient.get('gender', ''),
+                            'address': patient.get('address', [{}])[0].get('text', ''),
+                            'phone_number': patient.get('telecom', [{}])[0].get('value', ''),
+                            'condition_details': condition_details
+                        }
+                        return render(request, 'Patients/pulledrecords.html', context)
             else:
-                # Handle the case where the patient data is not found
                 return render(request, 'Patients/pulledrecords.html', {'error': 'Patient not found'})
     return redirect('PatientList')
+
 
 @csrf_exempt
 def SavePulledPatient(request):
@@ -248,6 +232,7 @@ def SavePulledPatient(request):
         gender = request.POST.get('gender')
         address = request.POST.get('address')
         phone_number = request.POST.get('phone_number')
+        condition_details = request.POST.get('condition_details')
 
         try:
             # Create or update the Patient object
@@ -263,6 +248,15 @@ def SavePulledPatient(request):
                     'Phone_Number': phone_number
                 }
             )
+
+            # Save condition details to the database
+            if condition_details and condition_details != 'No condition details available':
+                MedicalRecord.objects.create(
+                    Patient=patient,
+                    Diagnosis=condition_details,
+                    Treatment='N/A'  # You can update this as needed
+                )
+
             return redirect('PatientList')
         except IntegrityError as e:
             return render(request, 'Patients/pulledrecords.html', {
@@ -274,6 +268,33 @@ def SavePulledPatient(request):
                 'birth_date': birth_date,
                 'gender': gender,
                 'address': address,
-                'phone_number': phone_number
+                'phone_number': phone_number,
+                'condition_details': condition_details
             })
     return redirect('PatientList')
+
+def PullPatientCondition(request, patient_id):
+    patient_data = get_patient_with_condition(patient_id)
+    if patient_data:
+        entry = patient_data.get('entry', [])
+        if entry:
+            patient_entry = next((item for item in entry if item['resource']['resourceType'] == 'Patient'), None)
+            condition_entry = next((item for item in entry if item['resource']['resourceType'] == 'Condition'), None)
+
+            if patient_entry:
+                patient = patient_entry['resource']
+                condition_details = condition_entry['resource'].get('code', {}).get('text', 'No condition details available') if condition_entry else 'No condition details available'
+
+                context = {
+                    'patient_id': patient.get('id', ''),
+                    'identifier': patient.get('identifier', [{}])[0].get('value', ''),
+                    'first_name': patient.get('name', [{}])[0].get('given', [''])[0],
+                    'last_name': patient.get('name', [{}])[0].get('family', ''),
+                    'birth_date': patient.get('birthDate', ''),
+                    'gender': patient.get('gender', ''),
+                    'address': patient.get('address', [{}])[0].get('text', ''),
+                    'phone_number': patient.get('telecom', [{}])[0].get('value', ''),
+                    'condition_details': condition_details
+                }
+                return render(request, 'Patients/pulledrecords.html', context)
+    return render(request, 'Patients/pulledrecords.html', {'error': 'Patient not found'})
