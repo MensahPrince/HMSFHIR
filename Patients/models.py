@@ -16,6 +16,8 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.First_Name} {self.Last_Name} ({self.P_National_ID})"
 
+    def get_medical_records(self):
+        return self.medicalrecord_set.all()
 
 class MedicalRecord(models.Model):
     RecordID = models.AutoField(primary_key=True)
@@ -26,7 +28,6 @@ class MedicalRecord(models.Model):
 
     def __str__(self):
         return f"Medical Record {self.RecordID} for {self.Patient}"
-
 
 class Appointment(models.Model):
     AppointmentID = models.AutoField(primary_key=True)

@@ -29,5 +29,8 @@
         <input type="hidden" name="condition_details" value="{{ condition_details }}">
         <button type="submit">Save Patient Data</button>
     </form>
+    <form method="get" action="{% url 'pull_patient_condition' patient_id %}">
+        <button type="submit">Pull Condition Details</button>
+    </form>
 {% endif %}
 {% endblock %}
