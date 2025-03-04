@@ -77,10 +77,34 @@ def ViewRecordsSummary(request, patient_id):
     appointments = Appointment.objects.filter(Patient=patient)
     medical_records = patient.get_medical_records()
 
+    # Fetch condition details from the database if available
+    condition_details = {}
+    if medical_records.exists():
+        condition = medical_records.first()
+        condition_details = {
+            'id': condition.RecordID,
+            'clinical_status': condition.Clinical_Status,
+            'verification_status': condition.Verification_Status,
+            'category': condition.Category,
+            'severity': condition.Severity,
+            'code': condition.Code,
+            'subject': condition.Subject,
+            'encounter': condition.Encounter,
+            'onset': condition.Onset,
+            'abatement': condition.Abatement,
+            'recorded_date': condition.Recorded_Date,
+            'recorder': condition.Recorder,
+            'asserter': condition.Asserter,
+            'stage': condition.Stage,
+            'evidence': condition.Evidence,
+            'note': condition.Note
+        }
+
     context = {
         'patient': patient,
         'medical_records': medical_records,
         'appointments': appointments,
+        'condition_details': condition_details
     }
     return render(request, 'Patients/patientsummary.html', context)
 
@@ -202,7 +226,26 @@ def PullPatient(request):
 
                     if patient_entry:
                         patient = patient_entry['resource']
-                        condition_details = condition_entry['resource']['code']['coding'][0]['display'] if condition_entry else 'No condition details available'
+                        condition = condition_entry['resource'] if condition_entry else None
+
+                        condition_details = {
+                            'id': condition.get('id', 'N/A'),
+                            'clinical_status': condition.get('clinicalStatus', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'verification_status': condition.get('verificationStatus', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'category': condition.get('category', [{}])[0].get('coding', [{}])[0].get('display', 'N/A'),
+                            'severity': condition.get('severity', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'code': condition.get('code', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'subject': condition.get('subject', {}).get('display', 'N/A'),
+                            'encounter': condition.get('encounter', {}).get('reference', 'N/A'),
+                            'onset': condition.get('onsetDateTime', 'N/A'),
+                            'abatement': condition.get('abatementDateTime', 'N/A'),
+                            'recorded_date': condition.get('recordedDate', 'N/A'),
+                            'recorder': condition.get('recorder', {}).get('display', 'N/A'),
+                            'asserter': condition.get('asserter', {}).get('display', 'N/A'),
+                            'stage': condition.get('stage', [{}])[0].get('summary', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'evidence': condition.get('evidence', [{}])[0].get('detail', [{}])[0].get('display', 'N/A'),
+                            'note': condition.get('note', [{}])[0].get('text', 'N/A')
+                        } if condition else 'No condition details available'
 
                         context = {
                             'patient_id': patient.get('id', ''),
@@ -251,10 +294,26 @@ def SavePulledPatient(request):
 
             # Save condition details to the database
             if condition_details and condition_details != 'No condition details available':
+                condition_details = eval(condition_details)  # Convert string back to dictionary
                 MedicalRecord.objects.create(
                     Patient=patient,
-                    Diagnosis=condition_details,
-                    Treatment='N/A'  # You can update this as needed
+                    Diagnosis=condition_details.get('code', 'N/A'),
+                    Treatment='N/A',  # You can update this as needed
+                    Clinical_Status=condition_details.get('clinical_status', 'N/A'),
+                    Verification_Status=condition_details.get('verification_status', 'N/A'),
+                    Category=condition_details.get('category', 'N/A'),
+                    Severity=condition_details.get('severity', 'N/A'),
+                    Code=condition_details.get('code', 'N/A'),
+                    Subject=condition_details.get('subject', 'N/A'),
+                    Encounter=condition_details.get('encounter', 'N/A'),
+                    Onset=condition_details.get('onset', None) if condition_details.get('onset') != 'N/A' else None,
+                    Abatement=condition_details.get('abatement', None) if condition_details.get('abatement') != 'N/A' else None,
+                    Recorded_Date=condition_details.get('recorded_date', None) if condition_details.get('recorded_date') != 'N/A' else None,
+                    Recorder=condition_details.get('recorder', 'N/A'),
+                    Asserter=condition_details.get('asserter', 'N/A'),
+                    Stage=condition_details.get('stage', 'N/A'),
+                    Evidence=condition_details.get('evidence', 'N/A'),
+                    Note=condition_details.get('note', 'N/A')
                 )
 
             return redirect('PatientList')
