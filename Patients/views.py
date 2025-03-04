@@ -78,26 +78,26 @@ def ViewRecordsSummary(request, patient_id):
     medical_records = patient.get_medical_records()
 
     # Fetch condition details from the database if available
-    condition_details = 'No condition details available'
+    condition_details = {}
     if medical_records.exists():
         condition = medical_records.first()
         condition_details = {
             'id': condition.RecordID,
-            'clinical_status': condition.Diagnosis,  # Assuming Diagnosis contains clinical status
-            'verification_status': 'N/A',  # Update as needed
-            'category': 'N/A',  # Update as needed
-            'severity': 'N/A',  # Update as needed
-            'code': condition.Diagnosis,  # Assuming Diagnosis contains the code
-            'subject': patient.First_Name + ' ' + patient.Last_Name,
-            'encounter': 'N/A',  # Update as needed
-            'onset': 'N/A',  # Update as needed
-            'abatement': 'N/A',  # Update as needed
-            'recorded_date': condition.Date_Created,
-            'recorder': 'N/A',  # Update as needed
-            'asserter': 'N/A',  # Update as needed
-            'stage': 'N/A',  # Update as needed
-            'evidence': 'N/A',  # Update as needed
-            'note': condition.Treatment  # Assuming Treatment contains notes
+            'clinical_status': condition.Clinical_Status,
+            'verification_status': condition.Verification_Status,
+            'category': condition.Category,
+            'severity': condition.Severity,
+            'code': condition.Code,
+            'subject': condition.Subject,
+            'encounter': condition.Encounter,
+            'onset': condition.Onset,
+            'abatement': condition.Abatement,
+            'recorded_date': condition.Recorded_Date,
+            'recorder': condition.Recorder,
+            'asserter': condition.Asserter,
+            'stage': condition.Stage,
+            'evidence': condition.Evidence,
+            'note': condition.Note
         }
 
     context = {
@@ -294,10 +294,26 @@ def SavePulledPatient(request):
 
             # Save condition details to the database
             if condition_details and condition_details != 'No condition details available':
+                condition_details = eval(condition_details)  # Convert string back to dictionary
                 MedicalRecord.objects.create(
                     Patient=patient,
-                    Diagnosis=condition_details,
-                    Treatment='N/A'  # You can update this as needed
+                    Diagnosis=condition_details.get('code', 'N/A'),
+                    Treatment='N/A',  # You can update this as needed
+                    Clinical_Status=condition_details.get('clinical_status', 'N/A'),
+                    Verification_Status=condition_details.get('verification_status', 'N/A'),
+                    Category=condition_details.get('category', 'N/A'),
+                    Severity=condition_details.get('severity', 'N/A'),
+                    Code=condition_details.get('code', 'N/A'),
+                    Subject=condition_details.get('subject', 'N/A'),
+                    Encounter=condition_details.get('encounter', 'N/A'),
+                    Onset=condition_details.get('onset', None) if condition_details.get('onset') != 'N/A' else None,
+                    Abatement=condition_details.get('abatement', None) if condition_details.get('abatement') != 'N/A' else None,
+                    Recorded_Date=condition_details.get('recorded_date', None) if condition_details.get('recorded_date') != 'N/A' else None,
+                    Recorder=condition_details.get('recorder', 'N/A'),
+                    Asserter=condition_details.get('asserter', 'N/A'),
+                    Stage=condition_details.get('stage', 'N/A'),
+                    Evidence=condition_details.get('evidence', 'N/A'),
+                    Note=condition_details.get('note', 'N/A')
                 )
 
             return redirect('PatientList')
