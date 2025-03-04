@@ -77,10 +77,34 @@ def ViewRecordsSummary(request, patient_id):
     appointments = Appointment.objects.filter(Patient=patient)
     medical_records = patient.get_medical_records()
 
+    # Fetch condition details from the database if available
+    condition_details = 'No condition details available'
+    if medical_records.exists():
+        condition = medical_records.first()
+        condition_details = {
+            'id': condition.RecordID,
+            'clinical_status': condition.Diagnosis,  # Assuming Diagnosis contains clinical status
+            'verification_status': 'N/A',  # Update as needed
+            'category': 'N/A',  # Update as needed
+            'severity': 'N/A',  # Update as needed
+            'code': condition.Diagnosis,  # Assuming Diagnosis contains the code
+            'subject': patient.First_Name + ' ' + patient.Last_Name,
+            'encounter': 'N/A',  # Update as needed
+            'onset': 'N/A',  # Update as needed
+            'abatement': 'N/A',  # Update as needed
+            'recorded_date': condition.Date_Created,
+            'recorder': 'N/A',  # Update as needed
+            'asserter': 'N/A',  # Update as needed
+            'stage': 'N/A',  # Update as needed
+            'evidence': 'N/A',  # Update as needed
+            'note': condition.Treatment  # Assuming Treatment contains notes
+        }
+
     context = {
         'patient': patient,
         'medical_records': medical_records,
         'appointments': appointments,
+        'condition_details': condition_details
     }
     return render(request, 'Patients/patientsummary.html', context)
 
@@ -202,7 +226,26 @@ def PullPatient(request):
 
                     if patient_entry:
                         patient = patient_entry['resource']
-                        condition_details = condition_entry['resource']['code']['coding'][0]['display'] if condition_entry else 'No condition details available'
+                        condition = condition_entry['resource'] if condition_entry else None
+
+                        condition_details = {
+                            'id': condition.get('id', 'N/A'),
+                            'clinical_status': condition.get('clinicalStatus', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'verification_status': condition.get('verificationStatus', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'category': condition.get('category', [{}])[0].get('coding', [{}])[0].get('display', 'N/A'),
+                            'severity': condition.get('severity', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'code': condition.get('code', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'subject': condition.get('subject', {}).get('display', 'N/A'),
+                            'encounter': condition.get('encounter', {}).get('reference', 'N/A'),
+                            'onset': condition.get('onsetDateTime', 'N/A'),
+                            'abatement': condition.get('abatementDateTime', 'N/A'),
+                            'recorded_date': condition.get('recordedDate', 'N/A'),
+                            'recorder': condition.get('recorder', {}).get('display', 'N/A'),
+                            'asserter': condition.get('asserter', {}).get('display', 'N/A'),
+                            'stage': condition.get('stage', [{}])[0].get('summary', {}).get('coding', [{}])[0].get('display', 'N/A'),
+                            'evidence': condition.get('evidence', [{}])[0].get('detail', [{}])[0].get('display', 'N/A'),
+                            'note': condition.get('note', [{}])[0].get('text', 'N/A')
+                        } if condition else 'No condition details available'
 
                         context = {
                             'patient_id': patient.get('id', ''),

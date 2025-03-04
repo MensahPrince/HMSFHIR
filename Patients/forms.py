@@ -19,4 +19,8 @@ class AppointmentOnlyForms(forms.ModelForm):
 class MedicalRecordsForm(forms.ModelForm):
     class Meta:
         model = MedicalRecord
-        fields = ['Patient', 'Diagnosis', 'Treatment']
+        fields = [
+            'Patient', 'Diagnosis', 'Treatment', 'Clinical_Status', 'Verification_Status', 'Category', 
+            'Severity', 'Code', 'Subject', 'Encounter', 'Onset', 'Abatement', 'Recorded_Date', 
+            'Recorder', 'Asserter', 'Stage', 'Evidence', 'Note'
+        ]
