@@ -4,6 +4,8 @@ from .models import Patient, MedicalRecord, Appointment
 from .forms import PatientForm, AppointmentForm, AppointmentOnlyForms, MedicalRecordsForm
 from .fhir_service import get_patient, get_patient_condition, get_patient_with_condition
 from django.views.decorators.csrf import csrf_exempt
+from .fhir_service import get_patient_with_condition
+from datetime import datetime
 
 def Dashboard(request):
     appointments = Appointment.objects.all()  # Fetch all appointments
@@ -295,6 +297,20 @@ def SavePulledPatient(request):
             # Save condition details to the database
             if condition_details and condition_details != 'No condition details available':
                 condition_details = eval(condition_details)  # Convert string back to dictionary
+
+                # Convert date strings to the correct format
+                onset_date = condition_details.get('onset', None)
+                if onset_date and onset_date != 'N/A':
+                    onset_date = datetime.strptime(onset_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                abatement_date = condition_details.get('abatement', None)
+                if abatement_date and abatement_date != 'N/A':
+                    abatement_date = datetime.strptime(abatement_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
+                recorded_date = condition_details.get('recorded_date', None)
+                if recorded_date and recorded_date != 'N/A':
+                    recorded_date = datetime.strptime(recorded_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+
                 MedicalRecord.objects.create(
                     Patient=patient,
                     Diagnosis=condition_details.get('code', 'N/A'),
@@ -306,9 +322,9 @@ def SavePulledPatient(request):
                     Code=condition_details.get('code', 'N/A'),
                     Subject=condition_details.get('subject', 'N/A'),
                     Encounter=condition_details.get('encounter', 'N/A'),
-                    Onset=condition_details.get('onset', None) if condition_details.get('onset') != 'N/A' else None,
-                    Abatement=condition_details.get('abatement', None) if condition_details.get('abatement') != 'N/A' else None,
-                    Recorded_Date=condition_details.get('recorded_date', None) if condition_details.get('recorded_date') != 'N/A' else None,
+                    Onset=onset_date,
+                    Abatement=abatement_date,
+                    Recorded_Date=recorded_date,
                     Recorder=condition_details.get('recorder', 'N/A'),
                     Asserter=condition_details.get('asserter', 'N/A'),
                     Stage=condition_details.get('stage', 'N/A'),
@@ -332,28 +348,30 @@ def SavePulledPatient(request):
             })
     return redirect('PatientList')
 
-def PullPatientCondition(request, patient_id):
+
+from .fhir_service import get_patient_with_condition
+from .fhir_service import get_patient_with_condition
+
+def PullPatientCondition(request):
+    patient_id = request.GET.get('patient_id')
+    if not patient_id:
+        return render(request, 'Patients/pulledrecords.html', {'error': 'Patient ID is required'})
+    
     patient_data = get_patient_with_condition(patient_id)
     if patient_data:
-        entry = patient_data.get('entry', [])
-        if entry:
-            patient_entry = next((item for item in entry if item['resource']['resourceType'] == 'Patient'), None)
-            condition_entry = next((item for item in entry if item['resource']['resourceType'] == 'Condition'), None)
-
-            if patient_entry:
-                patient = patient_entry['resource']
-                condition_details = condition_entry['resource'].get('code', {}).get('text', 'No condition details available') if condition_entry else 'No condition details available'
-
-                context = {
-                    'patient_id': patient.get('id', ''),
-                    'identifier': patient.get('identifier', [{}])[0].get('value', ''),
-                    'first_name': patient.get('name', [{}])[0].get('given', [''])[0],
-                    'last_name': patient.get('name', [{}])[0].get('family', ''),
-                    'birth_date': patient.get('birthDate', ''),
-                    'gender': patient.get('gender', ''),
-                    'address': patient.get('address', [{}])[0].get('text', ''),
-                    'phone_number': patient.get('telecom', [{}])[0].get('value', ''),
-                    'condition_details': condition_details
-                }
-                return render(request, 'Patients/pulledrecords.html', context)
+        patient = patient_data.get('patient')
+        condition_details = patient_data.get('condition_details', {})
+        
+        context = {
+            'patient_id': patient.get('PatientID'),
+            'identifier': patient.get('P_National_ID'),
+            'first_name': patient.get('First_Name'),
+            'last_name': patient.get('Last_Name'),
+            'birth_date': patient.get('Date_of_Birth'),
+            'gender': patient.get('Gender'),
+            'address': patient.get('Address'),
+            'phone_number': patient.get('Phone_Number'),
+            'condition_details': condition_details
+        }
+        return render(request, 'Patients/pulledrecords.html', context)
     return render(request, 'Patients/pulledrecords.html', {'error': 'Patient not found'})

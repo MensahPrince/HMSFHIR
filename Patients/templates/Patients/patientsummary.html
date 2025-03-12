@@ -36,16 +36,24 @@
 {% endif %}
 
 <h2>Appointments</h2>
+{% if appointments %}
 <ul>
     {% for appointment in appointments %}
         <li>{{ appointment.Appointment_Date }} with Dr. {{ appointment.Doctor_Name }} - {{ appointment.Appointment_Status }}</li>
     {% endfor %}
 </ul>
+{% else %}
+    <div style="color: red;">No Appointments linked to patient.</div>
+{% endif %}
 
 <h2>Medical Records</h2>
+{% if medical_records %}
 <ul>
     {% for record in medical_records %}
         <li>{{ record.Date_Created }} - {{ record.Diagnosis }}</li>
     {% endfor %}
 </ul>
+{% else %}
+    <div style="color: red;">No Medical Records linked to patient.</div>
+{% endif %}
 {% endblock %}

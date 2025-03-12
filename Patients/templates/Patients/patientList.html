@@ -9,7 +9,7 @@
 <!-- Operations Section -->
 <section class="operations">
     <a href={% url "AddPatient" %} class="newPatient">New Patient</a>
-    <form method="get" action="{% url 'pull_patient' %}" style="display:inline;">
+    <form method="get" action="{% url 'pull_patient_condition' %}" style="display:inline;">
         <input type="text" name="patient_id" placeholder="Enter Patient ID" required>
         <button type="submit" class="btn btn-pull">Pull Patient</button>
     </form>
