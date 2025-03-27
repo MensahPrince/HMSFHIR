@@ -1,10 +1,12 @@
 from django import forms
-from .models import Patient, Appointment, MedicalRecord
+from .models import Patient, Appointment, MedicalRecord, Encounter, Practitioner
 
 class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
-        fields = ['PatientID', 'P_National_ID', 'First_Name', 'Last_Name', 'Date_of_Birth', 'Gender', 'Address', 'Phone_Number']
+        fields = [
+            'PatientID','P_National_ID','First_Name', 'Last_Name', 'Date_of_Birth', 'Gender', 'Address', 'Phone_Number', 'last_arrived','Identifier_Type' 
+        ]
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
@@ -22,5 +24,5 @@ class MedicalRecordsForm(forms.ModelForm):
         fields = [
             'Patient', 'Diagnosis', 'Treatment', 'Clinical_Status', 'Verification_Status', 'Category', 
             'Severity', 'Code', 'Subject', 'Encounter', 'Onset', 'Abatement', 'Recorded_Date', 
-            'Recorder', 'Asserter', 'Stage', 'Evidence', 'Note'
-        ]
+            'Recorder', 'Asserter', 'Stage', 'Evidence', 'Note',
+            'Allergies', 'Medications', 'Test_Results'  ]
